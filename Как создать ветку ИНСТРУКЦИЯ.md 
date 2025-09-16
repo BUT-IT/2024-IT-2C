@@ -1,0 +1,36 @@
+Шаги сдачи лабораторной
+
+# ЧАСТЬ №1
+
+Создай ветку под себя
+
+git checkout -b student/<github-username>/lab-<N>
+
+
+Добавь всё, что сделал
+
+git add .
+
+
+Сделай коммит
+
+git commit -m "lab<N>: сдача — <ФИО> (@<github-username>)"
+
+# ЧАСТЬ №2
+
+Отправь ветку на GitHub
+
+*ПУШИТЬ СТРОГО ПОСЛЕ ПРОВЕРКИ И ПОСЛЕ ЗАПОЛНЕНИЯ ОТЧЕТА*
+
+git push -u origin student/<github-username>/lab-<N> 
+
+*ПУШИТЬ СТРОГО ПОСЛЕ ПРОВЕРКИ И ПОСЛЕ ЗАПОЛНЕНИЯ ОТЧЕТА*
+
+
+Создай Pull Request (PR)
+
+Зайди в репозиторий на GitHub.
+
+Нажми Compare & Pull Request.
+
+Заполни шаблон и отправь.
