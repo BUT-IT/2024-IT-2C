@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Мини-каталог — Node.js + AJAX</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-VvU6Y5QmRk3Yk2c2s4rYJb0Xw1v7b3p8ZrP+6Xb0h7k=" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Мини-каталог</h1>
+
+    <div class="controls">
+      <label>Метод AJAX:</label>
+      <label><input type="radio" name="method" value="native" checked> Native (XMLHttpRequest)</label>
+      <label><input type="radio" name="method" value="jquery"> jQuery</label>
+
+      <button id="loadBtn">Загрузить товары</button>
+    </div>
+
+    <div id="status" class="status">Статус: ожидание</div>
+
+    <div id="products" class="products"></div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
