@@ -1,4 +1,4 @@
-// app.js — реализация двух способов AJAX: Native и jQuery
+// public/app.js — улучшённый (с fetch-fallback)
 
 (function() {
   const loadBtn = document.getElementById('loadBtn');
@@ -7,6 +7,7 @@
 
   function setStatus(text) {
     statusEl.textContent = 'Статус: ' + text;
+    console.log('[STATUS]', text);
   }
 
   function renderProducts(list) {
@@ -18,7 +19,11 @@
     list.forEach(p => {
       const div = document.createElement('div');
       div.className = 'product';
-      div.innerHTML = `<h3>${escapeHtml(p.name)}</h3><div>ID: ${p.id}</div><div class="price">$${p.price}</div>`;
+      // защита от XSS и поддержка полей name/id/price
+      const name = escapeHtml(p.name || (p.brand ? `${p.brand} ${p.model || ''}` : 'Unknown'));
+      const id = escapeHtml(String(p.id || ''));
+      const price = escapeHtml(String(p.price || ''));
+      div.innerHTML = `<h3>${name}</h3><div>ID: ${id}</div><div class="price">$${price}</div>`;
       productsEl.appendChild(div);
     });
   }
@@ -43,33 +48,59 @@
             renderProducts(data);
             setStatus('успешно (native)');
           } catch (e) {
+            console.error('Parse error (native):', e);
             setStatus('ошибка разбора ответа (native)');
           }
         } else {
+          console.error('Server error (native):', xhr.status, xhr.responseText);
           setStatus('ошибка сервера (native): ' + xhr.status);
         }
       }
     };
+    xhr.onerror = function(e) {
+      console.error('XHR network error', e);
+      setStatus('сетевая ошибка (native)');
+    };
     xhr.send();
   }
 
-  // jQuery AJAX
+  // jQuery AJAX (с fetch-fallback, если jQuery не доступен)
   function loadProductsJQuery() {
-    if (!window.jQuery) {
-      setStatus('jQuery не загружен');
+    // Если jQuery уже загружен — используем $.ajax
+    if (window.jQuery) {
+      setStatus('загрузка (jQuery)...');
+      $.ajax({
+        url: '/api/products',
+        method: 'GET',
+        dataType: 'json',
+        timeout: 10000
+      })
+      .done(function(data) {
+        renderProducts(data);
+        setStatus('успешно (jQuery)');
+      })
+      .fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('jQuery AJAX fail:', textStatus, errorThrown, jqXHR && jqXHR.responseText);
+        setStatus('ошибка (jQuery): ' + textStatus);
+      });
       return;
     }
-    setStatus('загрузка (jQuery)...');
-    $.ajax({
-      url: '/api/products',
-      method: 'GET',
-      dataType: 'json'
-    }).done(function(data) {
-      renderProducts(data);
-      setStatus('успешно (jQuery)');
-    }).fail(function(jqXHR, textStatus, errorThrown) {
-      setStatus('ошибка (jQuery): ' + textStatus);
-    });
+
+    // Если jQuery не загружен — fetch как запасной вариант
+    setStatus('jQuery не найден, fallback → fetch (jQuery-эмуляция)');
+    fetch('/api/products', { method: 'GET', cache: 'no-store' })
+      .then(resp => {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+      })
+      .then(data => {
+        renderProducts(data);
+        setStatus('успешно (fetch-fallback)');
+      })
+      .catch(err => {
+        console.error('Fetch fallback error:', err);
+        setStatus('ошибка (fetch-fallback): ' + err.message);
+      });
   }
 
   function getSelectedMethod() {
@@ -87,7 +118,10 @@
     else loadProductsJQuery();
   });
 
-  // Optional: load automatically on page load
+  // НЕ автозагружаем на load 
   // window.addEventListener('load', function() { document.getElementById('loadBtn').click(); });
+
+  // Для диагностики: выводим, загружен ли jQuery при старте
+  console.log('app.js loaded — jQuery present?', !!window.jQuery);
 
 })();
